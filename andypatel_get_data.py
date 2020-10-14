@@ -1,6 +1,7 @@
 from collections import Counter
 from itertools import combinations
 from twarc import Twarc
+from datetime import datetime
 import requests
 import sys
 import os
@@ -133,11 +134,12 @@ if __name__ == '__main__':
 # Create a separate save directory for each search query
 # Since search queries can be a whole sentence, we'll check the length
 # and simply number it if the query is overly long
-    if not os.path.exists("data/twitter"):
-      os.makedirs("data/twitter")
-    save_dir = "data/twitter/"
+    dataname = datetime.now().strftime("%Y%m%d%H%M%S") + '_' + target.replace(" ", "_") 
+    save_dir = '../data/twitter'
+    if not os.path.exists(save_dir):
+      os.makedirs(save_dir)
     if len(target) < 30:
-      save_dir += target.replace(" ", "_")
+      save_dir += dataname
     else:
       save_dir += "target_" + str(count + 1)
     if not os.path.exists(save_dir):
@@ -249,7 +251,7 @@ if __name__ == '__main__':
 # Iterate through image URLs, fetching each image if we haven't already
       print
       print("Fetching images.")
-      pictures_dir = os.path.join(save_dir, "images")
+      pictures_dir = os.path.join(save_dir, dataname + '_' + "images")
       if not os.path.exists(pictures_dir):
         print("Creating directory: " + pictures_dir)
         os.makedirs(pictures_dir)
@@ -276,7 +278,7 @@ if __name__ == '__main__':
                       "user_hashtag_graph.json": user_hashtag_graph,
                       "hashtag_hashtag_graph.json": hashtag_hashtag_graph}
       for name, dataset in json_outputs.items():
-        filename = os.path.join(save_dir, name)
+        filename = os.path.join(save_dir, dataname + '_' + name)
         save_json(dataset, filename)
  
 # These files are created in a format that can be easily imported into Gephi
@@ -284,7 +286,7 @@ if __name__ == '__main__':
                      "user_hashtag_graph.csv": user_hashtag_graph,
                      "hashtag_hashtag_graph.csv": hashtag_hashtag_graph}
       for name, dataset in csv_outputs.items():
-        filename = os.path.join(save_dir, name)
+        filename = os.path.join(save_dir, dataname + '_' + name)
         save_csv(dataset, filename)
  
       text_outputs = {"hashtags.txt": hashtag_frequency_dist,
@@ -292,5 +294,5 @@ if __name__ == '__main__':
                       "mentioned.txt": mentioned_frequency_dist,
                       "urls.txt": url_frequency_dist}
       for name, dataset in text_outputs.items():
-        filename = os.path.join(save_dir, name)
+        filename = os.path.join(save_dir, dataname + '_' + name)
         save_text(dataset, filename)
