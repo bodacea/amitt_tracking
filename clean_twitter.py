@@ -32,6 +32,8 @@ def tweet_json_to_csv(jsonfile):
     dftweets['date'] = dftweets['datetime'].dt.date
     dftweets['hour'] = dftweets['datetime'].dt.hour
     dftweets['ymdh'] = dftweets['datetime'].dt.year*1000000 + dftweets['datetime'].dt.month*10000 + dftweets['datetime'].dt.day*100 +dftweets['datetime'].dt.hour
+    dftweets['retweet'] = dftweets['text'].str.split(' ', n=1, expand=True)[0] == 'RT'
+    dftweets['retweeting']= dftweets['text'].apply(lambda x: x.split(' ')[1][:-1] if x.split(' ')[0] == 'RT' else '')
     
     csvfile = jsonfile[:jsonfile.rfind('.')] + '.csv'
     dftweets.to_csv(csvfile, index=False)
@@ -50,10 +52,27 @@ def clean_datasets(targetdir):
 
     for jsonfile in jsonfiles:
         csvfile = jsonfile[:jsonfile.rfind('.')] + '.csv'
-        if csvfile not in csvfiles:
-            tweet_json_to_csv(jsonfile)
+        #if csvfile not in csvfiles:
+        tweet_json_to_csv(jsonfile)
 
     return
+
+
+def merge_datasets(targetdir):
+    ''' Merge all the twitter data across a set of datasets '''
+    csvfiles = glob.glob(targetdir + '/*tweets.csv')
+    if len(csvfiles) == 0:
+        csvfiles = glob.glob(targetdir + '/*/*tweets.csv')
+
+    df = pd.DataFrame([])
+    for infile in csvfiles:
+        dfin = pd.read_csv(infile)
+        dfin['source'] = infile
+        df = df.append(dfin)
+    df.to_csv('tweets.csv', index=False)
+    print('wrote all tweets to tweets.csv')
+    
+    return df
 
 
 # Main starts here
